@@ -1,0 +1,17 @@
+
+server:
+  port: 8000
+
+spring:
+  application:
+    name: itcast-eureka-server
+eureka:
+  instance:
+    hostname: 127.0.0.1
+  client:
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+  server:
+      ##关闭掉eureka 的自我保护机制,无法链接 eureka-client中的服务,就将服务剔除! 2s检测一次
+      enable-self-preservation: false
+      eviction-interval-timer-in-ms: 2000
