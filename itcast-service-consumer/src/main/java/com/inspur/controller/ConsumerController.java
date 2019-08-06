@@ -1,17 +1,12 @@
 package com.inspur.controller;
 
+import com.inspur.client.UserClient;
 import com.inspur.entity.User;
-import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
 
 /**
  * User: YANG
@@ -20,36 +15,59 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/consumer")
+//@DefaultProperties(defaultFallback = "queryUserByUserIdFallBack")   //全局的熔断方法处理
 public class ConsumerController {
 
-	@Autowired
-	private RestTemplate restTemplate;
+//	@Autowired
+//	private RestTemplate restTemplate;
+//
+//	@Autowired
+//	private DiscoveryClient discoveryClient;
+//
+//	@GetMapping("{id}")
+//	@HystrixCommand
+//	public User queryUserByUserId(@PathVariable("id") Long id) {
+//		List<ServiceInstance> instanceInfoList = discoveryClient.getInstances("ITCAST-SERVICE-PROVIDER");
+//		try {
+//			Thread.sleep(30000);
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		instanceInfoList.forEach(instance -> {
+//			System.out.println("instance.getClass -------------:" + instance.getClass());
+//			System.out.println("instance.getHost --------------:" + instance.getHost());
+//			System.out.println("instance.getPort --------------:" + instance.getPort());
+//			System.out.println("instance.getServiceId ---------:" + instance.getServiceId());
+//			System.out.println("instance.getUri ---------------:" + instance.getUri());
+//			System.out.println("-----------------------------------------------------------------------------------");
+//		});
+//
+//		System.out.println("ConsumerController queryUserByUserId invoke ...");
+//		return restTemplate.getForObject("http://itcast-service-provider/user/" + id, User.class);
+//	}
+//
+//	/**
+//	 * 配置全局的也可以设置为局部的熔断方法
+//	 * 全局的用@DefaultProperties(defaultFallBack="")
+//	 */
+//	public User queryUserByUserIdFallBack() {
+//		User user = new User();
+//		user.setName("熔断降级...,请稍等再继续重试...");
+//		return user;
+//	}
+
 
 	@Autowired
-	private DiscoveryClient discoveryClient;
+	private UserClient userClient;
 
 	@GetMapping("{id}")
-	@HystrixCommand(fallbackMethod = "queryUserByUserIdFallBack")
 	public User queryUserByUserId(@PathVariable("id") Long id) {
-		List<ServiceInstance> instanceInfoList = discoveryClient.getInstances("ITCAST-SERVICE-PROVIDER");
-		instanceInfoList.forEach(instance -> {
-			System.out.println("instance.getClass -------------:" + instance.getClass());
-			System.out.println("instance.getHost --------------:" + instance.getHost());
-			System.out.println("instance.getPort --------------:" + instance.getPort());
-			System.out.println("instance.getServiceId ---------:" + instance.getServiceId());
-			System.out.println("instance.getUri ---------------:" + instance.getUri());
-			System.out.println("-----------------------------------------------------------------------------------");
-		});
-
 		System.out.println("ConsumerController queryUserByUserId invoke ...");
-		return restTemplate.getForObject("http://itcast-service-provider/user/" + id, User.class);
-	}
-
-
-	public User queryUserByUserIdFallBack(Long id) {
-		User user = new User();
-		user.setId(id);
-		user.setName("熔断降级...,请稍等再继续重试...");
+		User user = userClient.queryUserById(id);
 		return user;
 	}
+
+
+
+
 }
